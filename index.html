@@ -1,0 +1,905 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#060a13"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg">
+<style>html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<title>Dailys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=VT323&display=swap">
+<style>
+/* Layout: a single-column "System window" app shell, glowing panels over a void, RuneScape gold for rewards; bottom tab bar. One committed dark look. */
+:root{
+  --void:#060a13; --void2:#0b1324; --panel:#0d1830; --panel2:#11203d;
+  --line:#2a5da8; --glow:#5cc8ff; --glow-dim:#2f7fb8;
+  --text:#dce8ff; --muted:#8597ba; --faint:#4f5f80;
+  --gold:#f3c34a; --rs-yellow:#ffff3d; --rs-orange:#ff981f;
+  --red:#ff4f63; --green:#45e392; --purple:#a77bff;
+  --s-str:#ff6b57; --s-agi:#46e0b0; --s-int:#6aa8ff; --s-spa:#ffb547; --s-vit:#ff5d9e; --s-pra:#c9a7ff;
+  --f-display:"Chakra Petch","Rajdhani","Segoe UI",system-ui,sans-serif;
+  --f-body:"Barlow","Segoe UI",system-ui,sans-serif;
+  --f-rs:"VT323","Courier New",monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--void);color:var(--text)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(120% 60% at 50% -10%,#10264a 0%,var(--void) 60%) fixed,var(--void)}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:12px 96px;display:flex;flex-direction:column;gap:14px}
+.num{font-variant-numeric:tabular-nums}
+
+/* System panel */
+.sys{position:relative;background:linear-gradient(180deg,rgba(17,32,61,.92),rgba(10,19,38,.94));border:1px solid var(--line);
+  box-shadow:0 0 0 1px rgba(92,200,255,.08) inset,0 0 18px rgba(92,200,255,.18);padding:14px;border-radius:4px}
+.sys::before,.sys::after{content:"";position:absolute;width:10px;height:10px;border:2px solid var(--glow)}
+.sys::before{top:-2px;left:-2px;border-right:0;border-bottom:0}
+.sys::after{bottom:-2px;right:-2px;border-left:0;border-top:0}
+.sys-title{font-family:var(--f-display);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--glow);
+  display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.sys-title .bang{display:inline-grid;place-items:center;width:20px;height:20px;border:1.5px solid var(--glow);border-radius:50%;font-size:12px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* Status header */
+.status{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.lvl{display:flex;flex-direction:column;align-items:center;justify-content:center;width:74px;height:74px;border:1px solid var(--glow-dim);
+  background:radial-gradient(circle,#13305c,#0a1428);border-radius:4px}
+.lvl b{font-family:var(--f-display);font-size:30px;line-height:1;color:#fff;text-shadow:0 0 12px var(--glow)}
+.lvl span{font-family:var(--f-display);font-size:10px;letter-spacing:.2em;color:var(--glow)}
+.who{min-width:0}
+.who h1{font-size:20px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .title{font-size:12.5px;color:var(--purple);font-family:var(--f-display);letter-spacing:.06em}
+.rank{font-family:var(--f-display);font-weight:700;font-size:26px;width:52px;height:52px;display:grid;place-items:center;border:2px solid currentColor;border-radius:4px;
+  text-shadow:0 0 10px currentColor;box-shadow:0 0 12px -2px currentColor inset}
+.rank-E{color:#9aa6b8}.rank-D{color:#6fd16f}.rank-C{color:#5cc8ff}.rank-B{color:#a77bff}.rank-A{color:#ff9f43}.rank-S{color:#ff4f63}.rank-N{color:#f3c34a}
+.bar{height:8px;background:#0a1222;border:1px solid #1d3558;border-radius:2px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--glow-dim),var(--glow));box-shadow:0 0 8px var(--glow);transition:width .5s}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-display);font-size:12.5px;padding:3px 8px;border:1px solid #23406b;border-radius:3px;background:#0a1428}
+.chip.gold{color:var(--gold);border-color:#5e4a1c}
+.chip.fire{color:var(--rs-orange);border-color:#5e3a14}
+.chip.sync{color:var(--muted)}
+.iconbtn{background:none;border:1px solid #23406b;border-radius:4px;width:36px;height:36px;display:grid;place-items:center;color:var(--muted)}
+
+/* Daily quest */
+.dq-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dq-name{font-family:var(--f-display);font-size:16px;color:#fff;letter-spacing:.02em}
+.timer{font-family:var(--f-display);color:var(--red);font-size:13px;letter-spacing:.06em}
+.goal-label{font-family:var(--f-display);text-align:center;letter-spacing:.3em;font-size:12px;color:var(--glow);margin:12px 0 6px}
+.quest{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px dashed #1c3457}
+.quest:first-of-type{border-top:0}
+.qicon{width:28px;height:28px;display:grid;place-items:center;border-radius:3px;background:#0a1428;border:1px solid #1e3a62}
+.qicon svg{width:16px;height:16px}
+.qmain{min-width:0}
+.qname{font-weight:600;line-height:1.2}
+.qmeta{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:3px}
+.qmeta .bar{flex:1;height:5px}
+.quest.done .qname{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--green)}
+.quest.done .bar>i{background:var(--green);box-shadow:0 0 6px var(--green)}
+.qbtns{display:flex;gap:6px}
+.qb{min-width:40px;height:36px;padding:0 8px;border-radius:3px;border:1px solid #2a5da8;background:#0f2242;font-family:var(--f-display);font-weight:600;font-size:13px}
+.qb:active{transform:translateY(1px)}
+.qb.ok{border-color:#1f6e4b;color:var(--green)}
+.qb.minus{min-width:32px;color:var(--muted);border-color:#1e3a62;background:transparent}
+.check{color:var(--green);font-family:var(--f-display);font-size:13px}
+.warn{margin-top:10px;font-size:12.5px;color:var(--muted);border-top:1px solid #1c3457;padding-top:10px}
+.warn b{color:var(--red);font-family:var(--f-display);letter-spacing:.06em}
+.complete-banner{text-align:center;font-family:var(--f-display);color:var(--green);letter-spacing:.12em;padding:8px;border:1px solid #1f6e4b;background:rgba(69,227,146,.06);margin-top:10px}
+
+.penalty{border-color:#7a1f2c;box-shadow:0 0 18px rgba(255,79,99,.25)}
+.penalty::before,.penalty::after{border-color:var(--red)}
+.penalty .sys-title{color:var(--red)}
+.penalty .sys-title .bang{border-color:var(--red)}
+
+/* RS chatbox */
+.chat{background:#2d2617;border:3px solid #4b3f28;outline:1px solid #15110a;border-radius:2px;padding:6px 10px;font-family:var(--f-rs);font-size:19px;line-height:1.15;
+  max-height:170px;overflow-y:auto;color:#000}
+.chat p{margin:0;color:#f1e3bf}
+.chat .lvlup{color:#7fd1ff}.chat .gold{color:var(--rs-yellow)}.chat .red{color:#ff6b6b}.chat .grn{color:#7dff7d}.chat .pur{color:#d6a8ff}
+.chat-cap{font-family:var(--f-display);font-size:11px;letter-spacing:.2em;color:var(--muted);margin-bottom:4px}
+
+/* Skills (RS stone grid) */
+.skillgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.skill{display:grid;grid-template-columns:34px 1fr;gap:8px;align-items:center;text-align:left;background:linear-gradient(180deg,#3b3326,#2a2419);
+  border:2px solid #5a4c33;outline:1px solid #14100a;border-radius:3px;padding:8px}
+.skill svg{width:26px;height:26px}
+.skill .lv{font-family:var(--f-rs);font-size:28px;line-height:.9;color:var(--rs-yellow);text-shadow:1px 1px 0 #000}
+.skill .lv small{font-size:20px;color:#d9c48a}
+.skill .nm{font-family:var(--f-display);font-size:12px;letter-spacing:.06em;color:#e8dcc0}
+.skill .bar{height:5px;margin-top:4px;border-color:#14100a;background:#1a150d}
+.skill .bar>i{box-shadow:none}
+.total{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;align-items:center;margin-top:8px;font-family:var(--f-rs);font-size:22px;color:var(--rs-yellow);
+  background:#2a2419;border:2px solid #5a4c33;padding:4px 10px}
+.detail{margin-top:10px;font-size:13.5px}
+.detail dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0}
+.detail dt{color:var(--muted)}.detail dd{margin:0;text-align:right}
+.chart{width:100%;height:auto;display:block}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.heat i{aspect-ratio:1;border-radius:2px;background:#0f1b31;border:1px solid #182b4a}
+.heat i.p{background:#16406a}.heat i.c{background:var(--glow-dim);box-shadow:0 0 6px var(--glow-dim)}.heat i.t{outline:1px solid var(--gold)}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* Spanish */
+.card{border:1px solid #2a5da8;background:#0a1428;padding:18px 14px;text-align:center;border-radius:4px}
+.card .prompt{font-family:var(--f-display);font-size:30px;color:#fff;margin:6px 0}
+.card .dir{font-size:12px;letter-spacing:.2em;color:var(--muted);font-family:var(--f-display)}
+.opts{display:grid;gap:8px;margin-top:14px}
+.opt{padding:12px;border:1px solid #23406b;background:#0d1a33;border-radius:3px;text-align:left;font-size:15.5px}
+.opt.right{border-color:var(--green);background:rgba(69,227,146,.12)}
+.opt.wrong{border-color:var(--red);background:rgba(255,79,99,.12)}
+.btn{padding:11px 16px;border:1px solid var(--glow-dim);background:linear-gradient(180deg,#13305c,#0d2142);border-radius:3px;font-family:var(--f-display);font-weight:600;letter-spacing:.06em}
+.btn.gold{border-color:#8a6a1e;background:linear-gradient(180deg,#4a3a12,#2c230c);color:var(--gold)}
+.btn.red{border-color:#7a1f2c;background:#2a0d14;color:var(--red)}
+.btn.ghost{background:transparent;border-color:#23406b;color:var(--muted)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat b{display:block;font-family:var(--f-display);font-size:22px;color:#fff}
+.stat span{font-size:11.5px;color:var(--muted);letter-spacing:.06em}
+.cat{display:grid;grid-template-columns:110px 1fr 54px;gap:8px;align-items:center;font-size:13px;padding:3px 0}
+.phrase{font-family:var(--f-display);font-size:19px;color:#fff}
+
+/* Gate */
+.boss-name{font-family:var(--f-display);font-size:19px;color:#fff}
+.boss-rank{font-family:var(--f-display);font-size:12px;letter-spacing:.14em;color:var(--red)}
+.hp{height:16px;background:#2a0b10;border:1px solid #5a1a24;border-radius:2px;overflow:hidden;position:relative;margin-top:10px}
+.hp>i{display:block;height:100%;background:linear-gradient(90deg,#b0122a,#ff4f63);transition:width .6s}
+.hp>span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-display);font-size:11.5px;color:#fff;text-shadow:0 1px 2px #000}
+.clue{background:linear-gradient(180deg,#e9dcb5,#d4c08c);color:#3a2b10;border:2px solid #8a6f3a;border-radius:2px;padding:14px;font-family:var(--f-rs);font-size:21px;line-height:1.15}
+.clue .tier{font-size:16px;color:#7a5a1a;letter-spacing:.08em}
+.inv{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:#3e3529;border:2px solid #5a4c33;padding:6px;border-radius:2px}
+.slot{aspect-ratio:1/1;background:#2d261c;border:1px solid #241e15;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--f-rs);
+  font-size:13px;line-height:.95;text-align:center;color:#e8dcc0;padding:2px;position:relative;overflow:hidden;word-break:break-word;hyphens:auto}
+.slot .gem{width:18px;height:18px;transform:rotate(45deg);border-radius:3px;margin-bottom:5px}
+.slot .q{position:absolute;top:2px;left:3px;color:var(--rs-yellow);font-size:14px}
+.t-common .gem{background:#9aa6b8}.t-uncommon .gem{background:#46e0b0}.t-rare .gem{background:#5cc8ff;box-shadow:0 0 6px #5cc8ff}.t-legendary .gem{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.shadows{display:flex;flex-wrap:wrap;gap:6px}
+.shadow{font-family:var(--f-display);font-size:12.5px;padding:4px 8px;border:1px solid #3d2a6b;background:#140d26;color:var(--purple);border-radius:3px}
+.ach{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 0;border-top:1px dashed #1c3457;align-items:center}
+.ach:first-child{border-top:0}
+.ach.locked{opacity:.5}
+.ach .t{font-family:var(--f-display);font-size:14px}
+.ach .d{font-size:12.5px;color:var(--muted)}
+
+/* Shop */
+.shopitem{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px dashed #1c3457}
+.shopitem:first-child{border-top:0}
+.cost{color:var(--gold);font-family:var(--f-display);font-size:13px}
+
+/* Forms */
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);letter-spacing:.04em}
+input,select,textarea{background:#08111f;border:1px solid #23406b;color:var(--text);border-radius:3px;padding:8px;font:inherit;font-size:15px;width:100%;min-width:0}
+textarea{min-height:90px;font-family:monospace;font-size:12px}
+.qedit{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0;border-top:1px dashed #1c3457}
+.qedit .wide{grid-column:1/-1}
+
+/* Tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(6,10,19,.96);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -6px 20px rgba(0,0,0,.5)}
+.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tab{background:none;border:0;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-family:var(--f-display);font-size:11px;letter-spacing:.08em}
+.tab svg{width:22px;height:22px}
+.tab[aria-selected="true"]{color:var(--glow);text-shadow:0 0 8px var(--glow)}
+
+/* Overlay */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(3,6,12,.78);display:grid;place-items:center;padding:24px 16px;backdrop-filter:blur(2px)}
+.ov .sys{width:100%;max-width:400px;text-align:center;animation:pop .35s ease-out}
+.ov h2{font-size:24px;letter-spacing:.1em;color:#fff;text-shadow:0 0 14px var(--glow);margin:6px 0}
+.ov .rs{font-family:var(--f-rs);font-size:21px;color:#7fd1ff;line-height:1.15;margin:10px 0}
+.ov .big{font-family:var(--f-display);font-size:46px;color:var(--rs-yellow);text-shadow:0 0 16px rgba(255,255,61,.5)}
+.ov .arise{font-family:var(--f-display);font-size:44px;letter-spacing:.3em;color:var(--purple);text-shadow:0 0 22px var(--purple)}
+@keyframes pop{from{transform:scale(.92);opacity:.3}to{transform:none;opacity:1}}
+.sheet{position:fixed;inset:0;z-index:40;background:var(--void);overflow-y:auto}
+.sheet .app{padding-bottom:40px}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;background:#0d1a33;border:1px solid var(--glow-dim);padding:8px 14px;border-radius:3px;
+  font-family:var(--f-display);font-size:13px;box-shadow:0 0 14px rgba(92,200,255,.3);max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="root"></div>
+<div id="ovroot"></div>
+
+<script>
+"use strict";
+/* ===================== DATA ===================== */
+const SKILLS = {
+  str:{name:"Strength",short:"STR",color:"var(--s-str)",icon:'<path d="M3 9h2v6H3zM19 9h2v6h-2zM6 7h3v10H6zM15 7h3v10h-3zM9 11h6v2H9z"/>'},
+  agi:{name:"Agility",short:"AGI",color:"var(--s-agi)",icon:'<path d="M13 2 4 14h6l-2 8 10-13h-6l1-7z"/>'},
+  int:{name:"Intelligence",short:"INT",color:"var(--s-int)",icon:'<path d="M2 5c3-1 6-1 9 1v14c-3-2-6-2-9-1zM22 5c-3-1-6-1-9 1v14c3-2 6-2 9-1z"/>'},
+  spa:{name:"Spanish",short:"ESP",color:"var(--s-spa)",icon:'<path d="M3 4h18v12H9l-5 4v-4H3z"/><text x="12" y="13.5" font-size="9" text-anchor="middle" font-family="sans-serif" font-weight="700" fill="#0a1428">Ñ</text>'},
+  vit:{name:"Vitality",short:"VIT",color:"var(--s-vit)",icon:'<path d="M12 21 3.5 12.5A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6.5z"/>'},
+  pra:{name:"Prayer",short:"PRA",color:"var(--s-pra)",icon:'<path d="m12 2 2.6 6.4L21 9l-5 4.4L17.5 21 12 17.3 6.5 21 8 13.4 3 9l6.4-.6z"/>'}
+};
+const SKEYS = Object.keys(SKILLS);
+const svgI = (k, c) => `<svg viewBox="0 0 24 24" fill="${c||SKILLS[k].color}" aria-hidden="true">${SKILLS[k].icon}</svg>`;
+
+const DEFAULT_QUESTS = [
+  {id:"q_push",name:"Push-ups",skill:"str",target:30,step:10,unit:"reps",xp:700},
+  {id:"q_sit",name:"Sit-ups",skill:"str",target:30,step:10,unit:"reps",xp:600},
+  {id:"q_squat",name:"Squats",skill:"str",target:30,step:10,unit:"reps",xp:600},
+  {id:"q_run",name:"Run or brisk walk",skill:"agi",target:2,step:0.5,unit:"km",xp:1200},
+  {id:"q_mob",name:"Stretch / mobility",skill:"agi",target:10,step:5,unit:"min",xp:600},
+  {id:"q_read",name:"Read a book",skill:"int",target:15,step:5,unit:"pages",xp:1000},
+  {id:"q_esp",name:"Spanish lesson",skill:"spa",target:15,step:5,unit:"min",xp:1000},
+  {id:"q_cards",name:"Flashcards in the Español tab",skill:"spa",target:10,step:0,unit:"cards",xp:600,auto:"cards"},
+  {id:"q_water",name:"Drink water",skill:"vit",target:8,step:1,unit:"glasses",xp:500},
+  {id:"q_sleep",name:"Slept 7+ hours",skill:"vit",target:1,step:1,unit:"",xp:700},
+  {id:"q_med",name:"Meditate",skill:"pra",target:5,step:5,unit:"min",xp:700}
+];
+const DEFAULT_SHOP = [
+  {id:"r1",name:"Watch an anime episode",cost:300},
+  {id:"r2",name:"1 hour of RuneScape",cost:600},
+  {id:"r3",name:"Takeaway / cheat meal",cost:2000},
+  {id:"r4",name:"Buy something you've wanted",cost:6000}
+];
+const PENALTIES = [
+  {name:"Survive: 100 burpees",skill:"str",xp:2500},
+  {name:"Survive: 5 km run",skill:"agi",xp:3000},
+  {name:"Survive: 3 minutes of plank (total)",skill:"str",xp:2000},
+  {name:"Survive: 45 minutes of Spanish study",skill:"spa",xp:2500},
+  {name:"Survive: 200 squats",skill:"str",xp:2500},
+  {name:"Survive: cold shower + 20 min walk",skill:"vit",xp:2000}
+];
+const CLUES = [
+  {t:"Easy",s:"agi",x:"Take 10,000 steps today."},
+  {t:"Easy",s:"vit",x:"Eat a meal with a vegetable on half the plate."},
+  {t:"Easy",s:"pra",x:"Write down three things you're grateful for."},
+  {t:"Easy",s:"spa",x:"Label five objects in your room with their Spanish names."},
+  {t:"Easy",s:"int",x:"Watch a documentary or lecture for 20 minutes."},
+  {t:"Easy",s:"vit",x:"No sugary drinks all day."},
+  {t:"Medium",s:"spa",x:"Watch an episode of something in Spanish (subtitles allowed)."},
+  {t:"Medium",s:"str",x:"Hold a 2-minute plank, broken up any way you like."},
+  {t:"Medium",s:"pra",x:"No phone for the first hour after you wake up."},
+  {t:"Medium",s:"int",x:"Learn how something works and explain it out loud in 2 minutes."},
+  {t:"Medium",s:"agi",x:"20 minutes of skipping, cycling or swimming."},
+  {t:"Medium",s:"spa",x:"Say 10 sentences out loud in Spanish about your day."},
+  {t:"Medium",s:"vit",x:"In bed with lights off before 11pm."},
+  {t:"Hard",s:"str",x:"Do 100 push-ups across the day."},
+  {t:"Hard",s:"vit",x:"Take a cold shower for 2 minutes."},
+  {t:"Hard",s:"spa",x:"Write a 100-word diary entry in Spanish."},
+  {t:"Hard",s:"int",x:"Read 40 pages of a non-fiction book."},
+  {t:"Hard",s:"agi",x:"Run 5 km without stopping."},
+  {t:"Hard",s:"pra",x:"Meditate for 20 minutes in one sitting."},
+  {t:"Elite",s:"str",x:"Murph lite: 1 km run, 50 pull-ups or rows, 100 push-ups, 150 squats, 1 km run."},
+  {t:"Elite",s:"spa",x:"Have a 10-minute conversation in Spanish (a tutor, a friend or an AI)."},
+  {t:"Elite",s:"pra",x:"Full screen-free evening after 7pm."}
+];
+const CLUE_REWARD = {Easy:{xp:600,gold:150,rolls:1},Medium:{xp:1200,gold:300,rolls:2},Hard:{xp:2000,gold:500,rolls:3},Elite:{xp:3500,gold:900,rolls:4}};
+const LOOT = [
+  ["Bronze dagger","common"],["Lobster","common"],["Mana potion","common"],["Spinach roll","common"],["Iron scimitar","common"],["Hunter's license","common"],
+  ["Super strength potion","uncommon"],["Rune scimitar","uncommon"],["Dragon dagger","uncommon"],["Knight's longsword","uncommon"],["Amulet of glory","uncommon"],["Elixir of life","uncommon"],
+  ["Dragon chainbody","rare"],["Kasaka's venom fang","rare"],["Ranger boots","rare"],["Abyssal whip","rare"],["Orb of Avarice","rare"],
+  ["Third-age longsword","legendary"],["Demon King's daggers","legendary"],["Blue partyhat","legendary"],["Black heart","legendary"]
+];
+const TIER_W = {Easy:[80,17,3,0.15],Medium:[66,26,7,0.6],Hard:[50,34,14,2],Elite:[35,38,22,5],Boss:[20,40,30,10]};
+const BOSSES = [
+  {n:"Goblin Chieftain",r:"E-Rank Gate",shadow:"Goblin Chief"},
+  {n:"Steel-Fanged Lycan",r:"D-Rank Gate",shadow:"Iron Fang"},
+  {n:"Giant Mole",r:"D-Rank Gate",shadow:"Burrower"},
+  {n:"The Blood-Red Commander",r:"C-Rank Job Change",shadow:"Igris"},
+  {n:"General Graardor",r:"C-Rank Gate",shadow:"Bandos Warlord"},
+  {n:"Ice Elf Archmage",r:"B-Rank Gate",shadow:"Frost Mage"},
+  {n:"Kalphite Queen",r:"B-Rank Gate",shadow:"Hive Mother"},
+  {n:"Baruka, Ice Elf Lord",r:"B-Rank Gate",shadow:"Baruka"},
+  {n:"TzTok-Jad",r:"A-Rank Fight Cave",shadow:"Obsidian Brute"},
+  {n:"High Orc Shaman",r:"A-Rank Gate",shadow:"Tank"},
+  {n:"Vorkath",r:"A-Rank Gate",shadow:"Undead Dragon"},
+  {n:"The Ant King",r:"S-Rank Gate",shadow:"Beru"},
+  {n:"Demon Castle Lord",r:"S-Rank Gate",shadow:"Baran"},
+  {n:"Kamish's Shadow",r:"National-Level Gate",shadow:"Kaisel"}
+];
+const ACH = [
+  {id:"first_dq",t:"Player",d:"Complete your first Daily Quest",test:s=>s.stats.dqTotal>=1},
+  {id:"streak7",t:"One Who Overcame Adversity",d:"Reach a 7-day streak",test:s=>s.bestStreak>=7},
+  {id:"streak30",t:"Iron Will",d:"Reach a 30-day streak",test:s=>s.bestStreak>=30},
+  {id:"streak100",t:"Unbreakable",d:"Reach a 100-day streak",test:s=>s.bestStreak>=100},
+  {id:"boss1",t:"Wolf Slayer",d:"Clear your first weekly Gate",test:s=>s.shadows.length>=1},
+  {id:"boss5",t:"Necromancer",d:"Extract 5 shadows",test:s=>s.shadows.length>=5},
+  {id:"spa20",t:"Hablante",d:"Reach Spanish level 20",test:s=>lvl(s.xp.spa)>=20},
+  {id:"spa50",t:"Bilingüe",d:"Reach Spanish level 50",test:s=>lvl(s.xp.spa)>=50},
+  {id:"str30",t:"Iron Body",d:"Reach Strength level 30",test:s=>lvl(s.xp.str)>=30},
+  {id:"words100",t:"Lexicon",d:"Learn 100 Spanish words (box 3+)",test:s=>learnedCount(s)>=100},
+  {id:"clue10",t:"Treasure Hunter",d:"Complete 10 clue scrolls",test:s=>s.stats.clues>=10},
+  {id:"total250",t:"Skiller",d:"Reach total level 250",test:s=>totalLevel(s)>=250},
+  {id:"rankS",t:"Shadow Monarch",d:"Reach S-Rank",test:s=>hunterLevel(s)>=70},
+  {id:"leg",t:"Lucky",d:"Get a legendary drop",test:s=>Object.keys(s.inv).some(k=>LOOT.find(l=>l[0]===k&&l[1]==="legendary"))}
+];
+
+/* Spanish deck: [es, en, category] */
+const DECK = (`hola|hello|Basics;adiós|goodbye|Basics;por favor|please|Basics;gracias|thank you|Basics;de nada|you're welcome|Basics;sí|yes|Basics;no|no|Basics;perdón|sorry / excuse me|Basics;buenos días|good morning|Basics;buenas noches|good night|Basics;¿qué tal?|how's it going?|Basics;mucho gusto|nice to meet you|Basics;bien|well / good|Basics;mal|badly|Basics;muy|very|Basics;también|also|Basics;pero|but|Basics;porque|because|Basics;siempre|always|Basics;nunca|never|Basics;
+uno|one|Numbers;dos|two|Numbers;tres|three|Numbers;cuatro|four|Numbers;cinco|five|Numbers;seis|six|Numbers;siete|seven|Numbers;ocho|eight|Numbers;nueve|nine|Numbers;diez|ten|Numbers;veinte|twenty|Numbers;cincuenta|fifty|Numbers;cien|one hundred|Numbers;mil|one thousand|Numbers;
+ser|to be (permanent)|Verbs;estar|to be (state)|Verbs;tener|to have|Verbs;hacer|to do / make|Verbs;ir|to go|Verbs;poder|to be able to|Verbs;querer|to want|Verbs;saber|to know (facts)|Verbs;conocer|to know (people)|Verbs;comer|to eat|Verbs;beber|to drink|Verbs;dormir|to sleep|Verbs;correr|to run|Verbs;caminar|to walk|Verbs;hablar|to speak|Verbs;leer|to read|Verbs;escribir|to write|Verbs;aprender|to learn|Verbs;entrenar|to train|Verbs;ganar|to win / earn|Verbs;perder|to lose|Verbs;luchar|to fight|Verbs;empezar|to begin|Verbs;terminar|to finish|Verbs;necesitar|to need|Verbs;vivir|to live|Verbs;trabajar|to work|Verbs;jugar|to play (a game)|Verbs;
+agua|water|Food;pan|bread|Food;huevo|egg|Food;pollo|chicken|Food;carne|meat|Food;pescado|fish|Food;arroz|rice|Food;fruta|fruit|Food;manzana|apple|Food;verduras|vegetables|Food;leche|milk|Food;queso|cheese|Food;café|coffee|Food;desayuno|breakfast|Food;almuerzo|lunch|Food;cena|dinner|Food;la cuenta|the bill|Food;
+cuerpo|body|Fitness;brazo|arm|Fitness;pierna|leg|Fitness;espalda|back|Fitness;pecho|chest|Fitness;corazón|heart|Fitness;cabeza|head|Fitness;fuerza|strength|Fitness;velocidad|speed|Fitness;músculo|muscle|Fitness;sudor|sweat|Fitness;cansado|tired|Fitness;fuerte|strong|Fitness;débil|weak|Fitness;rápido|fast|Fitness;lento|slow|Fitness;flexiones|push-ups|Fitness;sentadillas|squats|Fitness;abdominales|sit-ups|Fitness;
+hoy|today|Time;mañana|tomorrow / morning|Time;ayer|yesterday|Time;ahora|now|Time;semana|week|Time;mes|month|Time;año|year|Time;hora|hour|Time;minuto|minute|Time;lunes|Monday|Time;martes|Tuesday|Time;miércoles|Wednesday|Time;jueves|Thursday|Time;viernes|Friday|Time;sábado|Saturday|Time;domingo|Sunday|Time;temprano|early|Time;tarde|late / afternoon|Time;
+casa|house|Everyday;libro|book|Everyday;teléfono|phone|Everyday;dinero|money|Everyday;trabajo|work / job|Everyday;amigo|friend|Everyday;familia|family|Everyday;ciudad|city|Everyday;calle|street|Everyday;coche|car|Everyday;perro|dog|Everyday;gato|cat|Everyday;tienda|shop|Everyday;puerta|door|Everyday;ventana|window|Everyday;cama|bed|Everyday;
+espada|sword|Adventure;escudo|shield|Adventure;mazmorra|dungeon|Adventure;jefe|boss|Adventure;sombra|shadow|Adventure;cazador|hunter|Adventure;nivel|level|Adventure;misión|quest / mission|Adventure;tesoro|treasure|Adventure;oro|gold|Adventure;magia|magic|Adventure;dragón|dragon|Adventure;batalla|battle|Adventure;poder|power|Adventure;levántate|arise|Adventure;
+grande|big|Describing;pequeño|small|Describing;bueno|good|Describing;malo|bad|Describing;nuevo|new|Describing;viejo|old|Describing;feliz|happy|Describing;triste|sad|Describing;fácil|easy|Describing;difícil|difficult|Describing;caliente|hot|Describing;frío|cold|Describing;bonito|pretty|Describing;listo|ready / smart|Describing`)
+  .split(";").map(s=>s.trim()).filter(Boolean).map(s=>{const [es,en,cat]=s.split("|");return {es,en,cat};});
+// Adventure "poder" duplicates the verb; give the noun its own key
+DECK.forEach((c,i)=>{c.id = c.cat==="Adventure"&&c.es==="poder" ? "poder_n" : c.es;});
+const PHRASES = [
+  ["Me levanto temprano para entrenar.","I get up early to train."],
+  ["Cada día soy más fuerte.","Every day I am stronger."],
+  ["Estoy aprendiendo español.","I am learning Spanish."],
+  ["¿Puedes hablar más despacio, por favor?","Can you speak more slowly, please?"],
+  ["No me rindo nunca.","I never give up."],
+  ["Hoy he corrido cinco kilómetros.","Today I ran five kilometres."],
+  ["Tengo que beber más agua.","I have to drink more water."],
+  ["¿Dónde está el baño?","Where is the bathroom?"],
+  ["Quisiera un café con leche.","I would like a coffee with milk."],
+  ["Poco a poco se va lejos.","Little by little, one goes far."],
+  ["La práctica hace al maestro.","Practice makes perfect."],
+  ["Querer es poder.","Where there's a will, there's a way."],
+  ["Más vale tarde que nunca.","Better late than never."],
+  ["¿Cómo se dice esto en español?","How do you say this in Spanish?"],
+  ["Me gusta jugar videojuegos.","I like playing video games."],
+  ["Mañana voy al gimnasio.","Tomorrow I'm going to the gym."],
+  ["Estoy cansado pero feliz.","I'm tired but happy."],
+  ["El que no arriesga, no gana.","Nothing ventured, nothing gained."],
+  ["Levántate.","Arise."],
+  ["Hoy es un buen día para subir de nivel.","Today is a good day to level up."]
+];
+
+/* ===================== HELPERS ===================== */
+const XPT = (()=>{const t=[0,0];let p=0;for(let l=1;l<99;l++){p+=Math.floor(l+300*Math.pow(2,l/7));t.push(Math.floor(p/4));}return t;})(); // XPT[L] = xp needed for level L
+function lvl(xp){let L=1;while(L<99&&xp>=XPT[L+1])L++;return L;}
+const fmt = n => Math.round(n).toLocaleString("en-GB");
+const h = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+function dayKey(d=new Date()){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function parseDay(k){const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d);}
+function addDays(k,n){const d=parseDay(k);d.setDate(d.getDate()+n);return dayKey(d);}
+function weekKey(k=dayKey()){const d=parseDay(k);const wd=(d.getDay()+6)%7;d.setDate(d.getDate()-wd);return dayKey(d);}
+function hash(s){let x=2166136261;for(const c of s){x^=c.charCodeAt(0);x=Math.imul(x,16777619);}return x>>>0;}
+function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const uid = () => Math.random().toString(36).slice(2,9);
+function totalLevel(s){return SKEYS.reduce((a,k)=>a+lvl(s.xp[k]),0);}
+function totalXp(s){return SKEYS.reduce((a,k)=>a+s.xp[k],0);}
+function hunterLevel(s){return Math.floor(Math.sqrt(totalXp(s)/1000))+1;}
+function hunterNext(L){return Math.pow(L,2)*1000;}
+function rankOf(L){return L>=100?"N":L>=70?"S":L>=50?"A":L>=35?"B":L>=20?"C":L>=10?"D":"E";}
+function learnedCount(s){return Object.values(s.cards).filter(c=>c.box>=3).length;}
+
+/* ===================== STATE ===================== */
+const LS_KEY = "arise-hunter-v1";
+function freshState(){
+  return {v:1,name:"Dan",title:"",updatedAt:0,created:dayKey(),
+    xp:Object.fromEntries(SKEYS.map(k=>[k,0])),gold:0,
+    quests:JSON.parse(JSON.stringify(DEFAULT_QUESTS)),shop:JSON.parse(JSON.stringify(DEFAULT_SHOP)),
+    days:{},lastDay:null,streak:0,bestStreak:0,penalty:null,
+    boss:null,shadows:[],inv:{},cards:{},log:[],
+    stats:{dqTotal:0,clues:0,bought:0,bossKills:0},ach:{}};
+}
+function migrate(s){
+  const f=freshState();
+  for(const k in f) if(s[k]===undefined) s[k]=f[k];
+  for(const k of SKEYS) if(typeof s.xp[k]!=="number") s.xp[k]=0;
+  for(const k in f.stats) if(s.stats[k]===undefined) s.stats[k]=0;
+  return s;
+}
+function readLocal(){try{const r=localStorage.getItem(LS_KEY);return r?migrate(JSON.parse(r)):null;}catch(e){return null;}}
+function writeLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
+
+let S = readLocal() || freshState();
+let isFresh = !readLocal();
+let cloud = {ref:null,status:"local",chain:Promise.resolve(),timer:null};
+
+function save(){
+  S.updatedAt = Date.now();
+  writeLocal();
+  if(cloud.ref){
+    clearTimeout(cloud.timer);
+    cloud.timer=setTimeout(()=>{
+      const body={json:JSON.stringify(S),updatedAt:S.updatedAt};
+      cloud.chain=cloud.chain.then(()=>cloud.ref.set(body)).then(()=>{cloud.status="cloud";paintSync();})
+        .catch(e=>{cloud.status=e&&e.code==="revoked"?"local":"retry";paintSync();});
+    },1200);
+  }
+}
+async function initCloud(){
+  try{
+    if(!window.claude||!window.claude.use) return;
+    const [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!db||!user) return;
+    const id=await user.id(); if(!id) return;
+    const ref=db.doc("data/users/"+id+"/save");
+    const snap=await ref.get();
+    cloud.ref=ref; cloud.status="cloud";
+    if(snap.exists){
+      const d=snap.data();
+      if(d&&d.json&&(isFresh||(d.updatedAt||0)>(S.updatedAt||0))){
+        S=migrate(JSON.parse(d.json)); isFresh=false; writeLocal(); rollover(); render();
+        if(ovOpen&&OVQ.length===0){ovroot.innerHTML="";ovOpen=false;}
+        toast("Progress loaded from your cloud save");
+      } else if((S.updatedAt||0)>(d.updatedAt||0)) save();
+    } else if(S.updatedAt) save();
+    paintSync();
+  }catch(e){cloud.status="local";paintSync();}
+}
+
+/* ===================== GAME LOGIC ===================== */
+function today(){return S.days[dayKey()] || (S.days[dayKey()]={prog:{},done:{},awarded:{},xp:{},complete:false,cards:0,clue:null});}
+function log(msg,cls=""){S.log.push({m:msg,c:cls,t:Date.now()});if(S.log.length>40)S.log.splice(0,S.log.length-40);}
+const OVQ=[];
+
+function award(skill,xp,opts={}){
+  if(!xp) return;
+  const beforeL=lvl(S.xp[skill]), beforeH=hunterLevel(S);
+  S.xp[skill]=Math.max(0,Math.min(200000000,S.xp[skill]+xp));
+  const d=today(); d.xp[skill]=(d.xp[skill]||0)+xp;
+  if(xp>0 && !opts.noBoss) damageBoss(xp);
+  const afterL=lvl(S.xp[skill]), afterH=hunterLevel(S);
+  if(afterL>beforeL){
+    log(`Congratulations, you just advanced ${afterL-beforeL>1?"some":"a"} ${SKILLS[skill].name} level${afterL-beforeL>1?"s":""}.`,"lvlup");
+    OVQ.push({type:"skill",skill,level:afterL});
+  }
+  if(afterH>beforeH){
+    log(`[System] Your Hunter level is now ${afterH}.`,"pur");
+    OVQ.push({type:"hunter",level:afterH,rankUp:rankOf(afterH)!==rankOf(beforeH)});
+  }
+}
+function setProgress(q,val){
+  const d=today();
+  val=Math.max(0,Math.round(val*100)/100);
+  d.prog[q.id]=val;
+  const wasDone=!!d.done[q.id], isDone=val>=q.target;
+  if(isDone&&!wasDone){
+    d.done[q.id]=true; d.awarded[q.id]={xp:q.xp,skill:q.skill,gold:Math.round(q.xp/20)};
+    award(q.skill,q.xp); S.gold+=Math.round(q.xp/20);
+    log(`Quest complete: ${q.name}. +${fmt(q.xp)} ${SKILLS[q.skill].name} xp.`,"grn");
+  } else if(!isDone&&wasDone){
+    const a=d.awarded[q.id]; delete d.done[q.id]; delete d.awarded[q.id];
+    if(a){award(a.skill,-a.xp,{noBoss:true}); S.gold=Math.max(0,S.gold-a.gold);}
+  }
+  checkDaily();
+}
+function checkDaily(){
+  const d=today();
+  if(d.complete||!S.quests.length) return;
+  if(S.quests.every(q=>d.done[q.id])){
+    d.complete=true;
+    const y=S.days[addDays(dayKey(),-1)];
+    S.streak = (y&&y.complete) ? S.streak+1 : 1;
+    S.bestStreak=Math.max(S.bestStreak,S.streak);
+    S.stats.dqTotal++;
+    const bonusGold=200+Math.min(S.streak,30)*20;
+    S.gold+=bonusGold;
+    SKEYS.forEach(k=>award(k,250));
+    log(`Daily Quest complete. Streak: ${S.streak} days. +${bonusGold} gold.`,"gold");
+    OVQ.unshift({type:"daily",gold:bonusGold});
+  }
+}
+function pickPenalty(k){const r=rng(hash("pen"+k));return {...PENALTIES[Math.floor(r()*PENALTIES.length)],from:k};}
+function newBoss(wk){
+  const idx=Math.min(S.stats.bossKills,BOSSES.length-1);
+  const b=BOSSES[(S.stats.bossKills>=BOSSES.length)?(hash(wk)%BOSSES.length):idx];
+  const hp=Math.round(45000*(1+0.15*S.stats.bossKills)/1000)*1000;
+  return {week:wk,n:b.n,r:b.r,shadow:b.shadow,hp,dmg:0,dead:false};
+}
+function damageBoss(xp){
+  const b=S.boss; if(!b||b.dead) return;
+  b.dmg+=xp;
+  if(b.dmg>=b.hp){
+    b.dead=true; b.dmg=b.hp; S.stats.bossKills++;
+    S.shadows.push({n:b.shadow,from:b.n,d:dayKey()});
+    const gold=1500+S.stats.bossKills*250; S.gold+=gold;
+    const drops=rollLoot("Boss",2);
+    log(`Gate cleared: ${b.n} has been defeated. +${fmt(gold)} gold.`,"gold");
+    log(`ARISE. ${b.shadow} joins your shadow army.`,"pur");
+    OVQ.push({type:"boss",boss:b,gold,drops});
+  }
+}
+function rollLoot(tier,n){
+  const w=TIER_W[tier], out=[];
+  for(let i=0;i<n;i++){
+    let r=Math.random()*w.reduce((a,b)=>a+b,0), t=0;
+    const tiers=["common","uncommon","rare","legendary"];
+    for(let j=0;j<4;j++){r-=w[j];if(r<=0){t=j;break;}}
+    const pool=LOOT.filter(l=>l[1]===tiers[t]);
+    const it=pool[Math.floor(Math.random()*pool.length)];
+    S.inv[it[0]]=(S.inv[it[0]]||0)+1; out.push(it);
+    if(it[1]==="legendary") log(`Rare drop: ${it[0]}!`,"red");
+  }
+  return out;
+}
+function todaysClue(){
+  const k=dayKey(), r=rng(hash("clue"+k));
+  // Weekends roll harder clues
+  const wd=parseDay(k).getDay(), pool=CLUES.filter(c=>(wd===0||wd===6)?c.t!=="Easy":c.t!=="Elite");
+  return pool[Math.floor(r()*pool.length)];
+}
+function rollover(){
+  const k=dayKey();
+  if(S.lastDay && S.lastDay!==k){
+    const last=S.days[S.lastDay];
+    const missedGap = parseDay(k)-parseDay(S.lastDay) > 86400000*1.5;
+    if(!last||!last.complete||missedGap){
+      if(S.streak>0) log(`You failed to complete the Daily Quest. Streak lost (${S.streak} days).`,"red");
+      S.streak=0;
+      if(!S.penalty){S.penalty=pickPenalty(k);log(`[System] You have been sent to the Penalty Zone.`,"red");}
+    }
+  }
+  S.lastDay=k; today();
+  const wk=weekKey(k);
+  if(!S.boss||S.boss.week!==wk){
+    if(S.boss&&!S.boss.dead) log(`${S.boss.n} escaped the Gate. A new Gate has opened.`,"red");
+    S.boss=newBoss(wk);
+  }
+  const keys=Object.keys(S.days).sort(); while(keys.length>120) delete S.days[keys.shift()];
+  checkAch(true);
+}
+function checkAch(silent){
+  for(const a of ACH){
+    if(!S.ach[a.id]&&a.test(S)){
+      S.ach[a.id]=dayKey();
+      log(`Title acquired: “${a.t}”.`,"pur");
+      if(!silent) OVQ.push({type:"title",t:a.t,d:a.d});
+      if(!S.title) S.title=a.t;
+    }
+  }
+}
+
+/* ===================== SPANISH SRS ===================== */
+const BOX_DAYS=[0,1,2,4,8,16,32];
+let quiz=null;
+function buildQuiz(n=10){
+  const k=dayKey();
+  const due=DECK.filter(c=>S.cards[c.id]&&S.cards[c.id].due<=k).sort((a,b)=>S.cards[a.id].box-S.cards[b.id].box);
+  const fresh=DECK.filter(c=>!S.cards[c.id]);
+  const q=due.slice(0,n); for(const c of fresh){if(q.length>=n)break;q.push(c);}
+  if(q.length<n){const rest=DECK.filter(c=>!q.includes(c)).sort(()=>Math.random()-.5);q.push(...rest.slice(0,n-q.length));}
+  return {items:q.sort(()=>Math.random()-.5).map(c=>makeQ(c)),i:0,right:0,answered:null};
+}
+function makeQ(c){
+  const toEn=Math.random()<.6;
+  const same=DECK.filter(x=>x!==c&&x.cat===c.cat&&x.en!==c.en), other=DECK.filter(x=>x!==c&&x.cat!==c.cat);
+  const picks=same.sort(()=>Math.random()-.5).slice(0,3);
+  while(picks.length<3) picks.push(other[Math.floor(Math.random()*other.length)]);
+  const opts=[c,...picks].sort(()=>Math.random()-.5);
+  return {c,toEn,opts};
+}
+function answer(idx){
+  const it=quiz.items[quiz.i]; if(quiz.answered!==null) return;
+  quiz.answered=idx;
+  const ok=it.opts[idx]===it.c, k=dayKey();
+  const card=S.cards[it.c.id]||{box:0,due:k,seen:0};
+  card.seen++; card.box=ok?Math.min(6,card.box+1):1; card.due=addDays(k,BOX_DAYS[card.box]);
+  S.cards[it.c.id]=card;
+  if(ok){quiz.right++;award("spa",40);S.gold+=2;} else award("spa",5);
+  const d=today(); d.cards=(d.cards||0)+1;
+  const cq=S.quests.find(q=>q.auto==="cards"); if(cq) setProgress(cq,d.cards);
+  if(it.toEn) speak(it.c.es);
+  save(); render(); flushOv();
+}
+function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang="es-ES";u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
+
+/* ===================== RENDER ===================== */
+let tab="quests", sel="str", editing=false, clueOpen=null, confirmReset=false;
+const root=document.getElementById("root"), ovroot=document.getElementById("ovroot");
+try{tab=localStorage.getItem("arise-tab")||"quests";}catch(e){}
+
+function timeLeft(){const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const s=Math.floor((m-n)/1000);return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`;}
+function syncLabel(){return cloud.status==="cloud"?"Cloud save on":cloud.status==="retry"?"Saving…":"Saved on this device";}
+function paintSync(){const el=document.getElementById("sync");if(el)el.textContent=syncLabel();}
+
+function header(){
+  const H=hunterLevel(S), r=rankOf(H), lo=hunterNext(H-1), hi=hunterNext(H), p=Math.min(100,(totalXp(S)-lo)/(hi-lo)*100);
+  return `<section class="sys" aria-label="Status">
+    <div class="status">
+      <div class="lvl"><span>LEVEL</span><b class="num">${H}</b></div>
+      <div class="who">
+        <h1>${h(S.name)}</h1>
+        <div class="title">${S.title?`Title: ${h(S.title)}`:"Title: none yet"}</div>
+        <div class="bar" style="margin-top:7px" title="Progress to next Hunter level"><i style="width:${p}%"></i></div>
+        <div class="small muted num" style="margin-top:3px">${fmt(totalXp(S)-lo)} / ${fmt(hi-lo)} xp to Lv ${H+1}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+        <div class="rank rank-${r}" title="Hunter rank">${r==="N"?"N":r}</div>
+        <span class="small muted" style="font-family:var(--f-display);font-size:10px;letter-spacing:.12em">${r==="N"?"NATIONAL":r+"-RANK"}</span>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip gold num">${fmt(S.gold)} gp</span>
+      <span class="chip fire num">Streak ${S.streak}d</span>
+      <span class="chip num">Total Lv ${totalLevel(S)}</span>
+      <span class="chip sync" id="sync">${syncLabel()}</span>
+      <button class="iconbtn" style="margin-left:auto;width:30px;height:28px" data-act="settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7 7 0 0 0-1.7-1L15 3h-4l-.4 2.7a7 7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7 7 0 0 0 1.7 1L11 21h4l.4-2.7a7 7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+      </button>
+    </div>
+  </section>`;
+}
+
+function questsView(){
+  const d=today();
+  const doneN=S.quests.filter(q=>d.done[q.id]).length;
+  let pen="";
+  if(S.penalty){
+    pen=`<section class="sys penalty">
+      <div class="sys-title"><span class="bang">!</span>Penalty Quest</div>
+      <div class="dq-name">${h(S.penalty.name)}</div>
+      <p class="small muted" style="margin:6px 0 10px">You failed a Daily Quest. Clear this to leave the Penalty Zone. Reward: ${fmt(S.penalty.xp)} ${SKILLS[S.penalty.skill].name} xp.</p>
+      <button class="btn red" data-act="penalty">I survived</button>
+    </section>`;
+  }
+  const rows=S.quests.map(q=>{
+    const v=d.prog[q.id]||0, done=!!d.done[q.id], pct=Math.min(100,v/q.target*100);
+    let btns;
+    if(q.auto==="cards") btns = done?`<span class="check">CLEAR</span>`:`<button class="qb" data-act="tab" data-tab="spanish">Go</button>`;
+    else if(q.target===1) btns = done?`<button class="qb minus" data-act="q-set" data-id="${q.id}" data-v="0" aria-label="Undo">↺</button>`:`<button class="qb ok" data-act="q-set" data-id="${q.id}" data-v="1">Done</button>`;
+    else btns = (v>0?`<button class="qb minus" data-act="q-dec" data-id="${q.id}" aria-label="Remove ${q.step}">−</button>`:"")+
+      (done?`<span class="check" style="padding:0 4px">CLEAR</span>`:`<button class="qb" data-act="q-inc" data-id="${q.id}">+${q.step}</button><button class="qb ok" data-act="q-set" data-id="${q.id}" data-v="${q.target}" aria-label="Mark complete">✓</button>`);
+    return `<div class="quest ${done?"done":""}">
+      <div class="qicon">${svgI(q.skill)}</div>
+      <div class="qmain"><div class="qname">${h(q.name)}</div>
+        <div class="qmeta"><span class="num">[${fmt2(Math.min(v,q.target))}/${fmt2(q.target)}${q.unit?" "+h(q.unit):""}]</span><div class="bar"><i style="width:${pct}%"></i></div><span class="num">+${fmt(q.xp)}</span></div></div>
+      <div class="qbtns">${btns}</div></div>`;
+  }).join("");
+  const chat=S.log.slice(-14).map(l=>`<p class="${l.c}">${h(l.m)}</p>`).join("")||`<p>Welcome to Dailys.</p>`;
+  return pen+`<section class="sys">
+    <div class="sys-title"><span class="bang">!</span>Quest Info</div>
+    <div class="dq-head"><div class="dq-name">[Daily Quest: Preparation to Become Powerful]</div>
+      <div class="timer num" id="timer">${timeLeft()}</div></div>
+    <div class="goal-label">GOALS · ${doneN}/${S.quests.length}</div>
+    ${rows||`<p class="muted">No quests yet. Add some in Settings.</p>`}
+    ${d.complete?`<div class="complete-banner">DAILY QUEST COMPLETE</div>`:
+      `<div class="warn"><b>WARNING:</b> Failure to complete the daily quest will result in an appropriate <b>penalty</b>. Completing it rewards +250 xp in every skill and bonus gold.</div>`}
+  </section>
+  <section><div class="chat-cap">GAME MESSAGES</div><div class="chat" id="chat">${chat}</div></section>`;
+}
+function fmt2(n){return Number.isInteger(n)?fmt(n):n.toFixed(1);}
+
+function skillsView(){
+  const grid=SKEYS.map(k=>{
+    const xp=S.xp[k],L=lvl(xp),lo=XPT[L],hi=L<99?XPT[L+1]:XPT[99],p=L>=99?100:(xp-lo)/(hi-lo)*100;
+    return `<button class="skill" data-act="sel" data-k="${k}" aria-pressed="${sel===k}" style="${sel===k?"border-color:#c9a64a":""}">
+      ${svgI(k)}<div><div class="lv num">${L}<small>/99</small></div><div class="nm">${SKILLS[k].name}</div><div class="bar"><i style="width:${p}%;background:${SKILLS[k].color}"></i></div></div></button>`;
+  }).join("");
+  const xp=S.xp[sel],L=lvl(xp),next=L<99?XPT[L+1]:null;
+  const last14=[...Array(14)].map((_,i)=>addDays(dayKey(),i-13));
+  const vals=last14.map(k=>S.days[k]?Object.values(S.days[k].xp||{}).reduce((a,b)=>a+Math.max(0,b),0):0);
+  const max=Math.max(5000,...vals), W=320,Hh=120,bw=W/14;
+  const ticks=[0,max/2,max];
+  const bars=vals.map((v,i)=>{const bh=v/max*(Hh-22);return `<rect x="${i*bw+3}" y="${Hh-14-bh}" width="${bw-6}" height="${Math.max(bh,0)}" fill="${i===13?"#5cc8ff":"#2f7fb8"}" rx="1"/>`;}).join("");
+  const labels=last14.map((k,i)=>i%2===1?`<text x="${i*bw+bw/2}" y="${Hh-2}" font-size="8" fill="#8597ba" text-anchor="middle">${parseDay(k).getDate()}</text>`:"").join("");
+  const grid2=ticks.map(t=>`<line x1="0" x2="${W}" y1="${Hh-14-t/max*(Hh-22)}" y2="${Hh-14-t/max*(Hh-22)}" stroke="#1d3558" stroke-width=".6"/>`).join("");
+  // 35-day calendar
+  const start=addDays(weekKey(),-28);
+  const cal=[...Array(35)].map((_,i)=>{const k=addDays(start,i),d=S.days[k];const c=k>dayKey()?"":d&&d.complete?"c":d&&Object.keys(d.done||{}).length?"p":"";return `<i class="${c} ${k===dayKey()?"t":""}" title="${k}"></i>`;}).join("");
+  return `<section class="sys"><div class="sys-title"><span class="bang">!</span>Skills</div>
+    <div class="skillgrid">${grid}</div>
+    <div class="total num"><span>Total level: ${totalLevel(S)}</span><span>${fmt(totalXp(S))} xp</span></div>
+    <div class="detail"><dl>
+      <dt>${SKILLS[sel].name} xp</dt><dd class="num">${fmt(xp)}</dd>
+      <dt>Next level at</dt><dd class="num">${next?fmt(next):"Maxed"}</dd>
+      <dt>Remaining xp</dt><dd class="num">${next?fmt(next-xp):"0"}</dd>
+      <dt>Level 99 at</dt><dd class="num">${fmt(XPT[99])}</dd>
+    </dl></div></section>
+  <section class="sys"><div class="sys-title">XP gained · last 14 days</div>
+    <svg class="chart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Daily xp bar chart">${grid2}${bars}${labels}
+      <text x="${W-2}" y="${Hh-14-(Hh-22)-2}" font-size="8" fill="#8597ba" text-anchor="end">${fmt(max)}</text></svg>
+  </section>
+  <section class="sys"><div class="sys-title">Daily Quest log · 5 weeks</div>
+    <div class="heat">${cal}</div>
+    <div class="legend"><span><i style="background:var(--glow-dim)"></i>Completed</span><span><i style="background:#16406a"></i>Partial</span><span><i style="background:#0f1b31;border:1px solid #182b4a"></i>Missed</span></div>
+    <p class="small muted" style="margin:8px 0 0">Best streak: <span class="num">${S.bestStreak}</span> day${S.bestStreak===1?"":"s"} · Daily Quests cleared: <span class="num">${S.stats.dqTotal}</span></p>
+  </section>`;
+}
+
+function spanishView(){
+  const k=dayKey(), seen=Object.keys(S.cards).length, learned=learnedCount(S), due=DECK.filter(c=>S.cards[c.id]&&S.cards[c.id].due<=k).length;
+  const ph=PHRASES[hash("ph"+k)%PHRASES.length];
+  let q="";
+  if(quiz){
+    if(quiz.i>=quiz.items.length){
+      q=`<section class="sys" style="text-align:center"><div class="sys-title" style="justify-content:center">Session complete</div>
+        <div class="big" style="font-family:var(--f-display);font-size:36px;color:var(--rs-yellow)">${quiz.right}/${quiz.items.length}</div>
+        <p class="muted">+${fmt(quiz.right*40+(quiz.items.length-quiz.right)*5)} Spanish xp</p>
+        <div class="row" style="justify-content:center"><button class="btn" data-act="quiz-start">Another 10</button><button class="btn ghost" data-act="quiz-end">Done</button></div></section>`;
+    } else {
+      const it=quiz.items[quiz.i], prompt=it.toEn?it.c.es:it.c.en;
+      const opts=it.opts.map((o,i)=>{let cls="";if(quiz.answered!==null){if(o===it.c)cls="right";else if(i===quiz.answered)cls="wrong";}
+        return `<button class="opt ${cls}" data-act="ans" data-i="${i}" ${quiz.answered!==null?"disabled":""}>${h(it.toEn?o.en:o.es)}</button>`;}).join("");
+      q=`<section class="sys"><div class="sys-title">Card ${quiz.i+1} of ${quiz.items.length} · ${h(it.c.cat)}</div>
+        <div class="card"><div class="dir">${it.toEn?"ESPAÑOL → ENGLISH":"ENGLISH → ESPAÑOL"}</div><div class="prompt">${h(prompt)}</div>
+        ${it.toEn?`<button class="btn ghost" data-act="speak" data-t="${h(it.c.es)}" style="padding:6px 12px;font-size:12px">Hear it</button>`:""}</div>
+        <div class="opts">${opts}</div>
+        ${quiz.answered!==null?`<div class="row" style="margin-top:12px;justify-content:space-between"><span class="${it.opts[quiz.answered]===it.c?"check":"muted"}">${it.opts[quiz.answered]===it.c?"Correct · +40 xp":"It's “"+h(it.c.es)+"” = "+h(it.c.en)}</span>
+          <button class="btn" data-act="quiz-next">Next</button></div>`:""}
+      </section>`;
+    }
+  }
+  const cats=[...new Set(DECK.map(c=>c.cat))].map(c=>{const all=DECK.filter(x=>x.cat===c),l=all.filter(x=>S.cards[x.id]&&S.cards[x.id].box>=3).length;
+    return `<div class="cat"><span>${c}</span><div class="bar"><i style="width:${l/all.length*100}%;background:var(--s-spa);box-shadow:none"></i></div><span class="num muted" style="text-align:right">${l}/${all.length}</span></div>`;}).join("");
+  return `${q||`<section class="sys"><div class="sys-title"><span class="bang">!</span>Spanish training</div>
+      <div class="stats3"><div class="stat"><b class="num">${lvl(S.xp.spa)}</b><span>LEVEL</span></div><div class="stat"><b class="num">${learned}</b><span>WORDS LEARNED</span></div><div class="stat"><b class="num">${due}</b><span>DUE TODAY</span></div></div>
+      <p class="small muted">Each session mixes words due for review with new ones. Right answers move a word up a box and it comes back later; wrong answers send it back to box 1. Today: <span class="num">${today().cards||0}</span> cards answered.</p>
+      <button class="btn gold" data-act="quiz-start" style="width:100%">Start 10-card session</button></section>`}
+    <section class="sys"><div class="sys-title">Frase del día</div>
+      <div class="phrase">${h(ph[0])}</div><div class="muted" style="margin:4px 0 10px">${h(ph[1])}</div>
+      <button class="btn ghost" data-act="speak" data-t="${h(ph[0])}" style="padding:6px 12px;font-size:12px">Hear it</button></section>
+    <section class="sys"><div class="sys-title">Word mastery · ${seen}/${DECK.length} seen</div>${cats}</section>`;
+}
+
+function gateView(){
+  const b=S.boss, left=b.hp-b.dmg, end=addDays(b.week,7), dl=Math.ceil((parseDay(end)-new Date())/86400000);
+  const clue=todaysClue(), d=today(), rw=CLUE_REWARD[clue.t];
+  const inv=Object.entries(S.inv);
+  const slots=[...Array(28)].map((_,i)=>{const e=inv[i];if(!e)return `<div class="slot"></div>`;const t=(LOOT.find(l=>l[0]===e[0])||[0,"common"])[1];
+    return `<div class="slot t-${t}" title="${h(e[0])}">${e[1]>1?`<span class="q num">${e[1]}</span>`:""}<span class="gem"></span>${h(e[0])}</div>`;}).join("");
+  const ach=ACH.map(a=>`<div class="ach ${S.ach[a.id]?"":"locked"}"><div><div class="t">${h(a.t)}</div><div class="d">${h(a.d)}</div></div>
+    ${S.ach[a.id]?(S.title===a.t?`<span class="check">EQUIPPED</span>`:`<button class="qb" data-act="title" data-t="${h(a.t)}">Equip</button>`):`<span class="small muted">Locked</span>`}</div>`).join("");
+  return `<section class="sys penalty" style="${b.dead?"border-color:#3d2a6b;box-shadow:0 0 18px rgba(167,123,255,.25)":""}">
+      <div class="sys-title"><span class="bang">!</span>Weekly Gate</div>
+      <div class="boss-rank">${h(b.r)}</div><div class="boss-name">${h(b.n)}</div>
+      <div class="hp"><i style="width:${left/b.hp*100}%"></i><span class="num">${b.dead?"DEFEATED":fmt(left)+" / "+fmt(b.hp)+" HP"}</span></div>
+      <p class="small muted" style="margin:8px 0 0">${b.dead?`Cleared. ${h(b.shadow)} was extracted into your shadow army. A new Gate opens on Monday.`:`Every xp you earn this week hits the boss. ${dl} day${dl===1?"":"s"} until the Gate closes and it escapes.`}</p>
+    </section>
+    <section class="sys"><div class="sys-title">Clue scroll · today</div>
+      <div class="clue"><div class="tier">${clue.t.toUpperCase()} CLUE · ${SKILLS[clue.s].name.toUpperCase()}</div>${h(clue.x)}</div>
+      <div class="row" style="margin-top:10px;justify-content:space-between"><span class="small muted">Reward: ${fmt(rw.xp)} xp, ${rw.gold} gp, ${rw.rolls} casket roll${rw.rolls>1?"s":""}</span>
+      ${d.clue?`<span class="check">CASKET OPENED</span>`:`<button class="btn gold" data-act="clue">Open casket</button>`}</div>
+    </section>
+    <section class="sys"><div class="sys-title">Shadow army · ${S.shadows.length}</div>
+      ${S.shadows.length?`<div class="shadows">${S.shadows.map(s=>`<span class="shadow" title="From ${h(s.from)}">${h(s.n)}</span>`).join("")}</div>`:`<p class="small muted" style="margin:0">Defeat a weekly Gate boss to extract your first shadow.</p>`}
+    </section>
+    <section class="sys"><div class="sys-title">Inventory · collection log</div><div class="inv">${slots}</div></section>
+    <section class="sys"><div class="sys-title">Titles</div>${ach}</section>`;
+}
+
+function shopView(){
+  const items=S.shop.map(r=>`<div class="shopitem"><div><div style="font-weight:600">${h(r.name)}</div><div class="cost num">${fmt(r.cost)} gp</div></div>
+    <div class="row"><button class="btn gold" data-act="buy" data-id="${r.id}" ${S.gold<r.cost?"disabled":""} style="padding:8px 12px">Buy</button>
+    <button class="qb minus" data-act="shop-del" data-id="${r.id}" aria-label="Delete reward">×</button></div></div>`).join("");
+  return `<section class="sys"><div class="sys-title"><span class="bang">!</span>Shop</div>
+      <p class="small muted" style="margin-top:0">Spend gold on real rewards. Gold comes from quests, Daily Quest bonuses, clue scrolls and Gate bosses. You have <span class="cost num">${fmt(S.gold)} gp</span>.</p>
+      ${items||`<p class="muted">No rewards yet.</p>`}</section>
+    <section class="sys"><div class="sys-title">Add a reward</div>
+      <form id="shopform" class="qedit" style="border:0;padding:0">
+        <label class="f wide">Reward<input id="sh-name" required maxlength="60" placeholder="e.g. New game"></label>
+        <label class="f">Cost (gp)<input id="sh-cost" type="number" min="1" required value="1000"></label>
+        <div style="display:flex;align-items:flex-end"><button class="btn" type="submit" style="width:100%">Add</button></div>
+      </form></section>
+    <p class="small muted" style="text-align:center">Rewards bought: <span class="num">${S.stats.bought}</span></p>`;
+}
+
+function settingsView(){
+  const qs=S.quests.map((q,i)=>`<div class="qedit" data-i="${i}">
+    <label class="f wide">Quest<input id="qe-n-${q.id}" data-f="name" value="${h(q.name)}" maxlength="50"></label>
+    <label class="f">Skill<select id="qe-s-${q.id}" data-f="skill">${SKEYS.map(k=>`<option value="${k}" ${q.skill===k?"selected":""}>${SKILLS[k].name}</option>`).join("")}</select></label>
+    <label class="f">Target<input id="qe-t-${q.id}" data-f="target" type="number" min="0.5" step="any" value="${q.target}" ${q.auto?"disabled":""}></label>
+    <label class="f">Unit<input id="qe-u-${q.id}" data-f="unit" value="${h(q.unit)}" maxlength="12" ${q.auto?"disabled":""}></label>
+    <label class="f">Step per tap<input id="qe-p-${q.id}" data-f="step" type="number" min="0.1" step="any" value="${q.step}" ${q.auto?"disabled":""}></label>
+    <label class="f">XP reward<input id="qe-x-${q.id}" data-f="xp" type="number" min="0" step="50" value="${q.xp}"></label>
+    <div style="display:flex;align-items:flex-end"><button class="btn red" data-act="q-del" data-id="${q.id}" style="width:100%;padding:8px">Remove</button></div>
+  </div>`).join("");
+  return `<div class="app">
+    <div class="row" style="justify-content:space-between"><h2 style="font-size:18px;letter-spacing:.1em;color:var(--glow)">SETTINGS</h2><button class="btn" data-act="settings-close">Done</button></div>
+    <section class="sys"><div class="sys-title">Hunter</div><label class="f">Name<input id="set-name" value="${h(S.name)}" maxlength="24"></label></section>
+    <section class="sys"><div class="sys-title">Daily Quest</div>
+      <p class="small muted" style="margin-top:0">All quests must be cleared each day to keep your streak. Changes save as you type. Tip: raise targets as you level up, the way the System does.</p>
+      <div id="qlist">${qs}</div>
+      <div class="row" style="margin-top:10px"><button class="btn" data-act="q-add">Add quest</button><button class="btn ghost" data-act="q-defaults">Restore default quests</button></div></section>
+    <section class="sys"><div class="sys-title">Backup</div>
+      <p class="small muted" style="margin-top:0">${cloud.status==="cloud"?"Your progress is saved to your Claude account and on this device.":"Your progress is saved on this device. Copy a backup now and then so you never lose it."}</p>
+      <div class="row"><button class="btn" data-act="export">Copy backup</button><button class="btn ghost" data-act="import">Restore from text below</button></div>
+      <textarea id="backup" placeholder="Paste a backup here to restore it" style="margin-top:8px"></textarea></section>
+    <section class="sys"><div class="sys-title">Danger zone</div>
+      ${confirmReset?`<p class="small" style="color:var(--red);margin-top:0">This wipes every level, item and streak. There is no undo.</p><div class="row"><button class="btn red" data-act="reset-yes">Wipe everything</button><button class="btn ghost" data-act="reset-no">Keep my progress</button></div>`
+        :`<button class="btn red" data-act="reset">Reset all progress</button>`}</section>
+  </div>`;
+}
+
+function render(){
+  try{localStorage.setItem("arise-tab",tab);}catch(e){}
+  const views={quests:questsView,skills:skillsView,spanish:spanishView,gate:gateView,shop:shopView};
+  const tabs=[["quests","Quests",'<path d="M5 3h11l3 3v15H5zM8 9h8v2H8zm0 4h8v2H8zm0 4h5v2H8z"/>'],["skills","Skills",'<path d="M4 20V10h3v10zm6 0V4h3v16zm6 0v-7h3v7z"/>'],
+    ["spanish","Español",'<path d="M3 4h18v12H9l-5 4v-4H3z"/>'],["gate","Gate",'<path d="M12 2a9 9 0 0 0-9 9v11h18V11a9 9 0 0 0-9-9zm0 4a5 5 0 0 1 5 5v7H7v-7a5 5 0 0 1 5-5z"/>'],
+    ["shop","Shop",'<path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 14v1.5h-2V17a3.5 3.5 0 0 1-2.5-2.5l1.9-.6c.2.8.9 1.3 1.8 1.3 1 0 1.6-.4 1.6-1.1 0-.6-.4-.9-1.9-1.3-2-.5-3-1.2-3-2.8 0-1.2.9-2.2 2.1-2.5V6h2v1.6c1 .3 1.8 1 2.1 2l-1.8.7c-.3-.6-.8-1-1.6-1-.9 0-1.3.4-1.3.9 0 .6.5.8 2 1.2 2 .5 2.9 1.4 2.9 2.9 0 1.3-.9 2.3-2.3 2.7z"/>']];
+  root.innerHTML = editing ? settingsView() : `<main class="app">${header()}${views[tab]()}</main>
+    <nav class="tabs" aria-label="Sections"><div class="tabs-in" role="tablist">${tabs.map(([k,n,ic])=>`<button class="tab" role="tab" aria-selected="${tab===k}" data-act="tab" data-tab="${k}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${ic}</svg>${n}</button>`).join("")}</div></nav>`;
+  const c=document.getElementById("chat"); if(c) c.scrollTop=c.scrollHeight;
+}
+
+/* ===================== OVERLAYS ===================== */
+let ovOpen=false;
+function flushOv(){
+  checkAch(false);
+  if(ovOpen||!OVQ.length) return;
+  const o=OVQ.shift(); ovOpen=true; let body="";
+  if(o.type==="skill") body=`<div class="sys-title" style="justify-content:center"><span class="bang">!</span>Notification</div><h2>LEVEL UP</h2>
+    <div style="display:flex;justify-content:center;margin:8px 0">${svgI(o.skill).replace("<svg","<svg width='54' height='54'")}</div>
+    <div class="rs">Congratulations, you just advanced a ${SKILLS[o.skill].name} level.<br>Your ${SKILLS[o.skill].name} level is now ${o.level}.</div>`;
+  else if(o.type==="hunter") body=`<div class="sys-title" style="justify-content:center"><span class="bang">!</span>System</div><h2>${o.rankUp?"RANK UP":"LEVEL UP"}</h2>
+    <div class="big num">Lv ${o.level}</div>${o.rankUp?`<div class="rank rank-${rankOf(o.level)}" style="margin:10px auto">${rankOf(o.level)}</div><p class="muted">You are now a ${rankOf(o.level)==="N"?"National-Level":rankOf(o.level)+"-Rank"} Hunter.</p>`:`<p class="muted">Your Hunter level has increased.</p>`}`;
+  else if(o.type==="daily") body=`<div class="sys-title" style="justify-content:center"><span class="bang">!</span>Notification</div><h2>QUEST COMPLETE</h2>
+    <p class="muted">[Daily Quest: Preparation to Become Powerful] has been completed.</p>
+    <div class="rs" style="color:var(--rs-yellow)">Rewards: +250 xp in every skill<br>+${o.gold} gold · Streak ${S.streak} day${S.streak===1?"":"s"}</div>`;
+  else if(o.type==="boss") body=`<div class="sys-title" style="justify-content:center"><span class="bang">!</span>Gate cleared</div>
+    <p class="muted">${h(o.boss.n)} has been defeated.</p><div class="arise">ARISE</div><p>${h(o.boss.shadow)} has joined your shadow army.</p>
+    <div class="rs" style="color:var(--rs-yellow)">+${fmt(o.gold)} gold<br>${o.drops.map(d=>h(d[0])).join("<br>")}</div>`;
+  else if(o.type==="clue") body=`<div class="sys-title" style="justify-content:center">Casket</div><h2>TREASURE</h2>
+    <div class="rs" style="color:var(--rs-yellow)">Well done, you've completed the Treasure Trail!<br>+${fmt(o.xp)} ${SKILLS[o.skill].name} xp · +${o.gold} gp</div>
+    <div class="inv" style="grid-template-columns:repeat(${Math.min(4,o.drops.length)},1fr);max-width:${o.drops.length*80}px;margin:0 auto">${o.drops.map(d=>`<div class="slot t-${d[1]}"><span class="gem"></span>${h(d[0])}</div>`).join("")}</div>`;
+  else if(o.type==="title") body=`<div class="sys-title" style="justify-content:center"><span class="bang">!</span>Title acquired</div><h2 style="font-size:20px">“${h(o.t)}”</h2><p class="muted">${h(o.d)}</p>`;
+  else if(o.type==="welcome") body=`<div class="sys-title" style="justify-content:center"><span class="bang">!</span>Notification</div>
+    <h2 style="font-size:19px">You have acquired the qualifications to be a Player.</h2>
+    <p class="muted" style="text-align:left">Each day the System gives you a Daily Quest. Clear every goal before midnight to grow your streak, or face the Penalty Zone.</p>
+    <p class="muted" style="text-align:left">Quests train six skills on the RuneScape xp curve, all the way to 99. Your xp also damages a weekly Gate boss. Defeat it to extract a shadow. Clue scrolls drop loot, gold buys real rewards in the Shop, and the Español tab trains your Spanish.</p>
+    <p class="muted" style="text-align:left">Edit the quests in Settings (top right) to fit your life.</p>`;
+  ovroot.innerHTML=`<div class="ov" role="dialog" aria-modal="true"><div class="sys">${body}<button class="btn" data-act="ov-close" style="margin-top:14px;min-width:140px">${o.type==="welcome"?"Accept":"OK"}</button></div></div>`;
+}
+ovroot.addEventListener("click",e=>{if(e.target.closest("[data-act='ov-close']")){ovroot.innerHTML="";ovOpen=false;flushOv();}});
+
+let toastT;
+function toast(m){let t=document.getElementById("toast");if(!t){t=document.createElement("div");t.id="toast";t.className="toast";document.body.appendChild(t);}t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600);}
+
+/* ===================== EVENTS ===================== */
+root.addEventListener("click",async e=>{
+  const el=e.target.closest("[data-act]"); if(!el) return;
+  const a=el.dataset.act, q=S.quests.find(x=>x.id===el.dataset.id);
+  switch(a){
+    case "tab": tab=el.dataset.tab; render(); window.scrollTo(0,0); return;
+    case "sel": sel=el.dataset.k; render(); return;
+    case "q-inc": setProgress(q,(today().prog[q.id]||0)+q.step); break;
+    case "q-dec": setProgress(q,(today().prog[q.id]||0)-q.step); break;
+    case "q-set": setProgress(q,Number(el.dataset.v)); break;
+    case "penalty": { const p=S.penalty; S.penalty=null; award(p.skill,p.xp); log("You survived the Penalty Zone.","grn"); break; }
+    case "clue": { const c=todaysClue(), rw=CLUE_REWARD[c.t]; today().clue=c.x; S.stats.clues++; award(c.s,rw.xp); S.gold+=rw.gold;
+      const drops=rollLoot(c.t,rw.rolls); log(`Treasure Trail complete (${c.t}). +${rw.gold} gp.`,"gold"); OVQ.push({type:"clue",xp:rw.xp,skill:c.s,gold:rw.gold,drops}); break; }
+    case "title": S.title=el.dataset.t; break;
+    case "quiz-start": quiz=buildQuiz(10); render(); return;
+    case "quiz-next": quiz.i++; quiz.answered=null; render(); return;
+    case "quiz-end": quiz=null; render(); return;
+    case "ans": answer(Number(el.dataset.i)); return;
+    case "speak": speak(el.dataset.t); return;
+    case "buy": { const r=S.shop.find(x=>x.id===el.dataset.id); if(!r||S.gold<r.cost) return; S.gold-=r.cost; S.stats.bought++; log(`Purchased: ${r.name} (−${fmt(r.cost)} gp). Enjoy it.`,"gold"); toast(`Bought: ${r.name}`); break; }
+    case "shop-del": S.shop=S.shop.filter(x=>x.id!==el.dataset.id); break;
+    case "settings": editing=true; confirmReset=false; render(); window.scrollTo(0,0); return;
+    case "settings-close": editing=false; render(); return;
+    case "q-add": S.quests.push({id:"q_"+uid(),name:"New quest",skill:"int",target:1,step:1,unit:"",xp:500}); break;
+    case "q-del": S.quests=S.quests.filter(x=>x.id!==el.dataset.id); break;
+    case "q-defaults": { const ids=new Set(S.quests.map(x=>x.id)); DEFAULT_QUESTS.forEach(d=>{if(!ids.has(d.id))S.quests.push(JSON.parse(JSON.stringify(d)));}); toast("Default quests restored"); break; }
+    case "export": { const txt=JSON.stringify(S); const ta=document.getElementById("backup"); ta.value=txt;
+      try{await navigator.clipboard.writeText(txt);toast("Backup copied");}catch(err){ta.select();toast("Backup is in the box below. Select all and copy it.");} return; }
+    case "import": { try{const v=JSON.parse(document.getElementById("backup").value);if(!v||!v.xp||!v.quests)throw 0;S=migrate(v);rollover();save();toast("Backup restored");render();}catch(err){toast("That text isn't a valid backup. Paste the whole thing.");} return; }
+    case "reset": confirmReset=true; render(); return;
+    case "reset-no": confirmReset=false; render(); return;
+    case "reset-yes": { const name=S.name; S=freshState(); S.name=name; confirmReset=false; editing=false; rollover(); save(); render(); toast("Progress wiped. Arise again."); return; }
+    default: return;
+  }
+  save(); render(); flushOv();
+});
+root.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.id==="set-name"){S.name=t.value.trim()||"Hunter";save();return;}
+  const row=t.closest(".qedit[data-i]"); if(!row||!t.dataset.f) return;
+  const q=S.quests[Number(row.dataset.i)], f=t.dataset.f;
+  if(["target","step","xp"].includes(f)){const n=parseFloat(t.value);if(!(n>=0))return;q[f]=f==="target"?Math.max(0.5,n):n;}
+  else q[f]=t.value;
+  save();
+});
+root.addEventListener("submit",e=>{
+  if(e.target.id!=="shopform") return; e.preventDefault();
+  const n=document.getElementById("sh-name").value.trim(), c=parseInt(document.getElementById("sh-cost").value,10);
+  if(!n||!(c>0)) return; S.shop.push({id:"r"+uid(),name:n,cost:c}); save(); render(); toast("Reward added");
+});
+
+/* ===================== BOOT ===================== */
+rollover();
+if(isFresh){ log("You have acquired the qualifications to be a Player.","pur"); OVQ.push({type:"welcome"}); }
+save(); render(); flushOv();
+initCloud();
+setInterval(()=>{
+  if(S.lastDay!==dayKey()){rollover();save();render();flushOv();return;}
+  const t=document.getElementById("timer"); if(t) t.textContent=timeLeft();
+},1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.lastDay!==dayKey()){rollover();save();render();flushOv();}});
+</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
+</body></html>
